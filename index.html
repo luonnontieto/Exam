@@ -66,8 +66,10 @@
   </form>
 
   <script>
+    // Init EmailJS
     emailjs.init("yhCVUvQVx2U99duQo");
 
+    // Opettajien sähköpostiosoitteet
     const teacherEmails = {
       MAL: "mathias.altinisik@outlook.com",
       LKL: "lkl@example.com",
@@ -84,19 +86,17 @@
       wordCountDiv.innerText = "Sanamäärä: " + wordCount;
     }
 
-    // Blockera ALL klistra in
+    // Estot
     teksti.addEventListener("paste", e => {
       e.preventDefault();
       alert("Liittäminen ei ole sallittu.");
     });
 
-    // Blockera dropp av text
     teksti.addEventListener("drop", e => {
       e.preventDefault();
       alert("Tekstin pudottaminen ei ole sallittu.");
     });
 
-    // Blockera snabbkommandon Ctrl/Cmd + V, C, X
     teksti.addEventListener("keydown", e => {
       if ((e.ctrlKey || e.metaKey) && ['v', 'c', 'x'].includes(e.key.toLowerCase())) {
         e.preventDefault();
@@ -104,14 +104,11 @@
       }
     });
 
-    // Blockera högerklick
     document.body.addEventListener("contextmenu", e => {
       e.preventDefault();
     });
 
-    // Ständigt rensa om nåt smyger in (tex via devtools)
     teksti.addEventListener("input", e => {
-      // Om ny input innehåller fler tecken än tidigare => blocka
       if (e.inputType === "insertFromPaste" || e.inputType === "insertFromDrop") {
         teksti.value = "";
         alert("Liittäminen ei ole sallittu.");
@@ -143,9 +140,10 @@
         opettaja: valittuOpettaja,
         teksti: tekstiVal,
         opettajan_email: vastaanottajaEmail,
+        from_name: `${etunimi} ${sukunimi}`
       })
       .then(() => {
-        alert("Tehtävä lähetetty onnistuneesti!");
+        alert("Tehtävä on lähetetty onnistuneesti opettajalle!");
         this.reset();
         wordCountDiv.innerText = "Sanamäärä: 0";
       })
