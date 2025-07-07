@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Kirjoitustehtävä</title>
-  <script src="https://cdn.emailjs.com/sdk/4.6.1/email.min.js"></script>
+  <script src="https://cdn.emailjs.com/dist/email.min.js" defer></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -28,6 +28,11 @@
       font-size: 0.9em;
       color: #444;
     }
+    .vahvistus {
+      margin-top: 20px;
+      color: green;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body oncontextmenu="return false;">
@@ -36,13 +41,13 @@
 
   <form id="tehtavaForm">
     <label class="required">Etunimi</label>
-    <input type="text" id="etunimi" required />
+    <input type="text" id="etunimi" name="etunimi" required />
 
     <label class="required">Sukunimi</label>
-    <input type="text" id="sukunimi" required />
+    <input type="text" id="sukunimi" name="sukunimi" required />
 
     <label class="required">Valitse luokka</label>
-    <select id="luokka" required>
+    <select id="luokka" name="luokka" required>
       <option value="">-- Valitse luokka --</option>
       <option>7A</option><option>7B</option><option>7C</option><option>7D</option><option>7E</option><option>7F</option>
       <option>8A</option><option>8B</option><option>8C</option><option>8D</option><option>8E</option><option>8F</option>
@@ -50,7 +55,7 @@
     </select>
 
     <label class="required">Valitse opettaja</label>
-    <select id="opettaja" required>
+    <select id="opettaja" name="opettaja" required>
       <option value="">-- Valitse opettaja --</option>
       <option value="MAL">MAL</option>
       <option value="LKL">LKL</option>
@@ -59,97 +64,85 @@
     </select>
 
     <label class="required">Tehtävän vastaus</label>
-    <textarea id="teksti" required></textarea>
+    <textarea id="teksti" name="teksti" required></textarea>
     <div class="word-count" id="wordCount">Sanamäärä: 0</div>
+
+    <!-- Mottagarens e-post -->
+    <input type="hidden" id="opettajan_email" name="opettajan_email" />
 
     <button type="submit">Lähetä</button>
   </form>
 
-  <script>
-    // Init EmailJS
-    emailjs.init("yhCVUvQVx2U99duQo");
+  <div class="vahvistus" id="vahvistusViesti" style="display:none;">
+    Tehtävä on lähetetty onnistuneesti opettajalle!
+  </div>
 
-    // Opettajien sähköpostiosoitteet
-    const teacherEmails = {
-      MAL: "mathias.altinisik@outlook.com",
-      LKL: "lkl@example.com",
-      JNU: "jnu@example.com",
-      KPI: "kpi@example.com",
-    };
+  <script defer>
+    window.addEventListener("DOMContentLoaded", function () {
+      emailjs.init("yhCVUvQVx2U99duQo");
 
-    const teksti = document.getElementById("teksti");
-    const wordCountDiv = document.getElementById("wordCount");
+      const teacherEmails = {
+        MAL: "mathias.altinisik@outlook.com",
+        LKL: "lkl@example.com",
+        JNU: "jnu@example.com",
+        KPI: "kpi@example.com",
+      };
 
-    function laskeSanat() {
-      const text = teksti.value;
-      const wordCount = text.trim().split(/\s+/).filter(w => w).length;
-      wordCountDiv.innerText = "Sanamäärä: " + wordCount;
-    }
+      const teksti = document.getElementById("teksti");
+      const wordCountDiv = document.getElementById("wordCount");
+      const vahvistus = document.getElementById("vahvistusViesti");
 
-    // Estot
-    teksti.addEventListener("paste", e => {
-      e.preventDefault();
-      alert("Liittäminen ei ole sallittu.");
-    });
+      function laskeSanat() {
+        const text = teksti.value;
+        const wordCount = text.trim().split(/\s+/).filter(w => w).length;
+        wordCountDiv.innerText = "Sanamäärä: " + wordCount;
+      }
 
-    teksti.addEventListener("drop", e => {
-      e.preventDefault();
-      alert("Tekstin pudottaminen ei ole sallittu.");
-    });
-
-    teksti.addEventListener("keydown", e => {
-      if ((e.ctrlKey || e.metaKey) && ['v', 'c', 'x'].includes(e.key.toLowerCase())) {
+      // Estä liittäminen
+      teksti.addEventListener("paste", e => {
         e.preventDefault();
-        alert("Toiminto ei ole sallittu.");
-      }
-    });
-
-    document.body.addEventListener("contextmenu", e => {
-      e.preventDefault();
-    });
-
-    teksti.addEventListener("input", e => {
-      if (e.inputType === "insertFromPaste" || e.inputType === "insertFromDrop") {
-        teksti.value = "";
         alert("Liittäminen ei ole sallittu.");
-      }
-      laskeSanat();
-    });
+      });
 
-    teksti.addEventListener("input", laskeSanat);
+      teksti.addEventListener("drop", e => {
+        e.preventDefault();
+        alert("Tekstin pudottaminen ei ole sallittu.");
+      });
 
-    document.getElementById("tehtavaForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+      teksti.addEventListener("keydown", e => {
+        if ((e.ctrlKey || e.metaKey) && ['v', 'c', 'x'].includes(e.key.toLowerCase())) {
+          e.preventDefault();
+          alert("Toiminto ei ole sallittu.");
+        }
+      });
 
-      const etunimi = document.getElementById("etunimi").value.trim();
-      const sukunimi = document.getElementById("sukunimi").value.trim();
-      const luokka = document.getElementById("luokka").value;
-      const valittuOpettaja = document.getElementById("opettaja").value;
-      const tekstiVal = teksti.value.trim();
-      const vastaanottajaEmail = teacherEmails[valittuOpettaja];
+      teksti.addEventListener("input", laskeSanat);
 
-      if (!etunimi || !sukunimi || !luokka || !valittuOpettaja || !tekstiVal) {
-        alert("Täytä kaikki kentät ennen lähettämistä.");
-        return;
-      }
+      document.getElementById("opettaja").addEventListener("change", function () {
+        const opettaja = this.value;
+        document.getElementById("opettajan_email").value = teacherEmails[opettaja] || "";
+      });
 
-      emailjs.send("service_3yy4329", "template_h9i9x9v", {
-        etunimi: etunimi,
-        sukunimi: sukunimi,
-        luokka: luokka,
-        opettaja: valittuOpettaja,
-        teksti: tekstiVal,
-        opettajan_email: vastaanottajaEmail,
-        from_name: `${etunimi} ${sukunimi}`
-      })
-      .then(() => {
-        alert("Tehtävä on lähetetty onnistuneesti opettajalle!");
-        this.reset();
-        wordCountDiv.innerText = "Sanamäärä: 0";
-      })
-      .catch(err => {
-        alert("Lähetys epäonnistui. Tarkista verkkoyhteys tai yritä uudelleen.");
-        console.error("EmailJS error:", err);
+      document.getElementById("tehtavaForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("opettajan_email").value;
+        if (!email) {
+          alert("Opettajan sähköpostiosoitetta ei löytynyt.");
+          return;
+        }
+
+        emailjs.sendForm("service_3yy4329", "template_h9i9x9v", this, "yhCVUvQVx2U99duQo")
+          .then(resp => {
+            console.log('EmailJS lähetti onnistuneesti:', resp);
+            this.reset();
+            wordCountDiv.innerText = "Sanamäärä: 0";
+            vahvistus.style.display = "block";
+          })
+          .catch(err => {
+            console.error('EmailJS virhe:', err);
+            alert("Lähetys epäonnistui. Tarkista verkkoyhteys tai yritä uudelleen.");
+          });
       });
     });
   </script>
